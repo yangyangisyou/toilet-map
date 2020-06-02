@@ -4,30 +4,48 @@
     <!-- 選擇地區 -->
     <div class="toolbox col-sm-3 p-2 bg-white">
         <div class="form-group d-flex">
-        <label for="city" class="col-form-label mr-2 text-right">縣市</label>
-        <div class="flex-fill">
-            <select id="city" class="form-control" v-model="select.city">
-                <!-- 製作下拉選單 -->
-                <option v-bind:value="city.name"
-                        v-bind:key="city.name"
-                        v-for="city in city">
-                        {{ city.name }}
-                </option>
-            </select>
-        </div>
+          <label for="city" class="col-form-label mr-2 text-right">縣市</label>
+          <div class="flex-fill">
+              <select id="city" class="form-control" v-model="select.city">
+                  <!-- 製作下拉選單 -->
+                  <option v-bind:value="city.name"
+                          v-bind:key="city.name"
+                          v-for="city in city">
+                          {{ city.name }}
+                  </option>
+              </select>
+          </div>
         </div>
         <div class="form-group d-flex">
-        <label for="dist" class="col-form-label mr-2 text-right">地區</label>
-        <div class="flex-fill">
-            <select id="dist" class="form-control" v-model="select.dist">
-                <!-- 製作下拉選單 -->
-                <option :value="dist.name"
-                        :key="dist.name"
-                        v-for="dist in city.find((city) => city.name === select.city).districts">
-                    {{ dist.name }}
-                </option>
-            </select>
+          <label for="dist" class="col-form-label mr-2 text-right">地區</label>
+          <div class="flex-fill">
+              <select id="dist" class="form-control" v-model="select.dist">
+                  <!-- 製作下拉選單 -->
+                  <option :value="dist.name"
+                          :key="dist.name"
+                          v-for="dist in city.find((city) => city.name === select.city).districts">
+                      {{ dist.name }}
+                  </option>
+              </select>
+          </div>
         </div>
+        <div class="form-group d-flex">
+          <label for="toiletType" class="col-form-label mr-2 text-right">廁所種類</label>
+          <div class="flex-fill">
+              <select id="toiletType" class="form-control" v-model="select.toiletType">
+                  <!-- 製作下拉選單 -->
+                  <option :value="toiletType"
+                          :key="key"
+                          v-for="(toiletType, key) in toiletTypes">
+                      {{ toiletType }}
+                  </option>
+              </select>
+          </div>
+        </div>
+         <div class="form-group d-flex">
+          <label for="toiletType" class="col-form-label mr-2 text-right">
+            總共找到：{{ totalToilet }}間
+          </label>
         </div>
     </div>
 
@@ -40,7 +58,7 @@
 <script>
 import leaflet from 'leaflet';
 import city from '../assets/city.json';
-
+import toiletsOriginData from '../assets/toilets.json';
 
 export default {
   name: 'Map',
@@ -49,20 +67,29 @@ export default {
   },
   data: () => ({
     city,
+    toiletsOriginData,
+    // toilets: [],
+    toiletTypes: ['無障礙廁所', '男廁所', '女廁所', '親子廁所', '性別友善廁所', '混合廁所'],
     select: {
       city: '臺北市',
       dist: '中正區',
+      toiletType: '混合廁所',
     },
-    ubikes: [],
     OSMap: {},
+    totalToilet: 0,
   }),
   created() {
-    const url = 'https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.json';
-    this.axios.get(url)
-      .then((response) => {
-        this.ubikes = Object.keys(response.data.retVal).map((key) => response.data.retVal[key]);
-        return response;
-      });
+    // const cors = 'https://cors-anywhere.herokuapp.com/'; // use cors-anywhere to fetch api
+    // const toiletUrl = 'http://opendata.epa.gov.tw/webapi/Data/OTH00307/?$filter=Country%20eq%20%27%E8%87%BA%E5%8C%97%E5%B8%82%27&$skip=0&$top=1000&format=json';
+    // this.axios.get(`${cors}${toiletUrl}`)
+    //   .then((response) => {
+    //     this.toilets = response.data;
+    //     console.log(response.data);
+    //     return response;
+    //   }).then(() => {
+    //     this.updateMarkers();
+    //   });
+    // this.toilets = this.toiletsOriginData;
   },
   mounted() {
     // leaflet文件
@@ -77,40 +104,54 @@ export default {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
     }).addTo(this.OSMap);
+    this.updateMarkers();
   },
   computed: {
-    // 取得ubike的資料
-    youbikes() {
-      return this.ubikes.filter((bike) => bike.sarea === this.select.dist);
+    // 過濾廁所資料
+    toilets() {
+      // console.log(this.toilets.filter((toilet) => toilet.Type2 === this.select.toiletType));
+      /* eslint-disable */
+      // this.toilets = this.toiletsOriginData.filter((toilet) => toilet.Type2 === this.select.toiletType);
+      // 只過濾種類
+      // return this.toiletsOriginData.filter((toilet) => toilet.Type2 === this.select.toiletType);
+      return this.toiletsOriginData.filter((toilet) => toilet.City === this.select.dist && toilet.Type2 === this.select.toiletType);
     },
   },
   watch: {
-    youbikes() {
+    toilets() {
+      this.updateMarkers();
+    },
+    "select.dist": function() {
       this.updateMarkers();
     },
   },
   methods: {
-    updateMarkers() {
+    async updateMarkers() {
       // 移除被選取的座標 eachLayer()、removeLayer()
       // https://leafletjs.com/reference-1.6.0.html#map-eachlayer
       // https://leafletjs.com/reference-1.6.0.html#map-removelayer
-      this.OSMap.eachLayer((layer) => {
+      this.totalToilet = this.toilets.length;
+      await this.OSMap.eachLayer((layer) => {
         if (layer instanceof leaflet.Marker) {
           this.OSMap.removeLayer(layer);
         }
       });
       // 新增選擇的座標
-      this.youbikes.forEach((bike) => {
-        leaflet.marker([bike.lat, bike.lng])
-          .bindPopup(`<p><strong style="font-size: 20px;">${bike.sna}</strong></p>
-                      <strong style="font-size: 16px; color: #d45345;">可租借車輛剩餘：${bike.sbi} 台</strong><br>
-                      可停空位剩餘: ${bike.bemp}<br>
-                      <small>最後更新時間: ${bike.mday}</small>`)
+      console.log('新增前有 ', this.toilets);
+      await this.toilets.forEach((toilet) => {
+        leaflet.marker([toilet.Latitude, toilet.Longitude])
+          .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
+                      <strong style="font-size: 16px; color: #d45345;">廁所種類：${toilet.Type2}</strong><br>
+                      廁所等級: ${toilet.Grade}<br>
+                      <small>地址: ${toilet.Address}</small>`)
           .addTo(this.OSMap);
       });
       // 聚焦到選擇的座標 panTo
       // https://leafletjs.com/reference-1.6.0.html#map-panto
-      this.city[0].districts.find((dist) => {
+      console.log('this.city[0]->', this.city[0]);
+      // console.log('this.city[0]->', this.city[0]);
+      await this.city[0].districts.find((dist) => {
+        console.log('地圖移動');
         if (dist.name === this.select.dist) {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
