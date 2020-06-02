@@ -137,7 +137,7 @@ export default {
         }
       });
       // 新增選擇的座標
-      console.log('新增前有 ', this.toilets);
+      // console.log('新增前有 ', this.toilets);
       await this.toilets.forEach((toilet) => {
         leaflet.marker([toilet.Latitude, toilet.Longitude])
           .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
@@ -148,10 +148,9 @@ export default {
       });
       // 聚焦到選擇的座標 panTo
       // https://leafletjs.com/reference-1.6.0.html#map-panto
-      console.log('this.city[0]->', this.city[0]);
       // console.log('this.city[0]->', this.city[0]);
       await this.city[0].districts.find((dist) => {
-        console.log('地圖移動');
+        // console.log('地圖移動');
         if (dist.name === this.select.dist) {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
