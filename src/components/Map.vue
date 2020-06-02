@@ -143,7 +143,7 @@ export default {
           .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
                       <strong style="font-size: 16px; color: #d45345;">廁所種類：${toilet.Type2}</strong><br>
                       廁所等級: ${toilet.Grade}<br>
-                      <small>地址: ${toilet.Address}</small>`)
+                      <small>地址: <a href=${'https://www.google.com/maps/place/'.concat(toilet.Address)} target="_blank">${toilet.Address}</a></small>`)
           .addTo(this.OSMap);
       });
       // 聚焦到選擇的座標 panTo
