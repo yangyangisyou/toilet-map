@@ -28,7 +28,7 @@ Version 1.0: [Click me](https://toiletmap.yyisyou.tw/)
 * [Leaflet](https://leafletjs.com/examples/quick-start/), an open street map  
 
 ### Open data
-* [YouBike臺北市公共自行車即時資訊 - Taipei YouBike real time data](https://data.taipei/#/dataset/detail?id=8ef1626a-892a-4218-8344-f7ac46e1aa48)  
+* [全國公廁建檔資料 - Taipei public toilets data](https://opendata.epa.gov.tw/Data/Contents/OTH00307/)  
 ### Ajax
 * axios
 * vue-axios
