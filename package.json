@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "node ./node_modules/vue-gh-pages/index.js"
+    "predeploy":"npm run build",
+    "deploy":"gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -26,6 +27,7 @@
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
+    "gh-pages": "^2.2.0",
     "node-sass": "^4.12.0",
     "sass-loader": "^8.0.2",
     "vue-gh-pages": "^1.19.0",
@@ -50,5 +52,5 @@
     "last 2 versions",
     "not dead"
   ],
-  "homepage": "git@github.com:yangyangisyou/ubike-map"
+  "homepage": "https://yangyangisyou.github.io/ubike-map"
 }

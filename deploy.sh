@@ -16,6 +16,6 @@ git add -A
 git commit -m 'deploy'
 
 # 部署到 https://<USERNAME>.github.io/<REPO>
-git push -f git@github.com:<USERNAME>/<REPO>.git master:gh-pages
+git push -f git@github.com:yangyangisyou/ubike-map.git master:gh-pages
 
 cd -

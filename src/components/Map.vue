@@ -113,9 +113,9 @@ export default {
       this.city[0].districts.find((dist) => {
         if (dist.name === this.select.dist) {
           // 聚焦座標
-          this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
+          // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
           // 傳送特效
-          // this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
+          this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
         }
         return dist.name === this.select.dist;
       });
