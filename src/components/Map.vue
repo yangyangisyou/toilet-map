@@ -68,6 +68,7 @@ export default {
   data: () => ({
     city,
     toiletsOriginData,
+    // toiletsOriginData: [],
     // toilets: [],
     toiletTypes: ['無障礙廁所', '男廁所', '女廁所', '親子廁所', '性別友善廁所', '混合廁所'],
     select: {
@@ -83,13 +84,12 @@ export default {
     // const toiletUrl = 'http://opendata.epa.gov.tw/webapi/Data/OTH00307/?$filter=Country%20eq%20%27%E8%87%BA%E5%8C%97%E5%B8%82%27&$skip=0&$top=1000&format=json';
     // this.axios.get(`${cors}${toiletUrl}`)
     //   .then((response) => {
-    //     this.toilets = response.data;
+    //     this.toiletsOriginData = response.data;
     //     console.log(response.data);
     //     return response;
     //   }).then(() => {
     //     this.updateMarkers();
     //   });
-    // this.toilets = this.toiletsOriginData;
   },
   mounted() {
     // leaflet文件
@@ -109,9 +109,7 @@ export default {
   computed: {
     // 過濾廁所資料
     toilets() {
-      // console.log(this.toilets.filter((toilet) => toilet.Type2 === this.select.toiletType));
       /* eslint-disable */
-      // this.toilets = this.toiletsOriginData.filter((toilet) => toilet.Type2 === this.select.toiletType);
       // 只過濾種類
       // return this.toiletsOriginData.filter((toilet) => toilet.Type2 === this.select.toiletType);
       return this.toiletsOriginData.filter((toilet) => toilet.City === this.select.dist && toilet.Type2 === this.select.toiletType);
@@ -119,6 +117,9 @@ export default {
   },
   watch: {
     toilets() {
+      this.updateMarkers();
+    },
+    toiletsOriginData() {
       this.updateMarkers();
     },
     "select.dist": function() {
@@ -136,8 +137,8 @@ export default {
           this.OSMap.removeLayer(layer);
         }
       });
+
       // 新增選擇的座標
-      // console.log('新增前有 ', this.toilets);
       await this.toilets.forEach((toilet) => {
         leaflet.marker([toilet.Latitude, toilet.Longitude])
           .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
@@ -146,11 +147,10 @@ export default {
                       <small>地址: <a href=${'https://www.google.com/maps/place/'.concat(toilet.Address)} target="_blank">${toilet.Address}</a></small>`)
           .addTo(this.OSMap);
       });
+
       // 聚焦到選擇的座標 panTo
       // https://leafletjs.com/reference-1.6.0.html#map-panto
-      // console.log('this.city[0]->', this.city[0]);
       await this.city[0].districts.find((dist) => {
-        // console.log('地圖移動');
         if (dist.name === this.select.dist) {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
