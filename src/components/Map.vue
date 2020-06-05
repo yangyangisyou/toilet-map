@@ -1,64 +1,73 @@
 /* eslint-disable */
 <template>
     <div class="row no-gutters">
-    <!-- 選擇地區 -->
-    <div class="toolbox col-sm-3 p-2 bg-white">
-        <div class="form-group d-flex">
-          <label for="city" class="col-form-label mr-2 text-right">縣市</label>
-          <div class="flex-fill">
-              <select id="city" class="form-control" v-model="select.city">
-                  <!-- 製作下拉選單 -->
-                  <option v-bind:value="city.name"
-                          v-bind:key="city.name"
-                          v-for="city in city">
-                          {{ city.name }}
-                  </option>
-              </select>
+      <!-- 選擇地區 -->
+      <div class="toolbox col-sm-3 p-2 bg-white">
+          <div class="form-group d-flex">
+            <label for="city" class="col-form-label mr-2 text-right">縣市</label>
+            <div class="flex-fill">
+                <select id="city" class="form-control" v-model="select.city">
+                    <!-- 製作下拉選單 -->
+                    <option v-bind:value="city.name"
+                            v-bind:key="city.name"
+                            v-for="city in city">
+                            {{ city.name }}
+                    </option>
+                </select>
+            </div>
           </div>
-        </div>
-        <div class="form-group d-flex">
-          <label for="dist" class="col-form-label mr-2 text-right">地區</label>
-          <div class="flex-fill">
-              <select id="dist" class="form-control" v-model="select.dist">
-                  <!-- 製作下拉選單 -->
-                  <option :value="dist.name"
-                          :key="dist.name"
-                          v-for="dist in city.find((city) => city.name === select.city).districts">
-                      {{ dist.name }}
-                  </option>
-              </select>
+          <div class="form-group d-flex">
+            <label for="dist" class="col-form-label mr-2 text-right">地區</label>
+            <div class="flex-fill">
+                <select id="dist" class="form-control" v-model="select.dist">
+                    <!-- 製作下拉選單 -->
+                    <option
+                      :value="dist.name"
+                      :key="dist.name"
+                      v-for="dist in city.find((city) => city.name === select.city).districts">
+                        {{ dist.name }}
+                    </option>
+                </select>
+            </div>
           </div>
-        </div>
-        <div class="form-group d-flex">
-          <label for="toiletType" class="col-form-label mr-2 text-right">廁所種類</label>
-          <div class="flex-fill">
-              <select id="toiletType" class="form-control" v-model="select.toiletType">
-                  <!-- 製作下拉選單 -->
-                  <option :value="toiletType"
-                          :key="key"
-                          v-for="(toiletType, key) in toiletTypes">
-                      {{ toiletType }}
-                  </option>
-              </select>
+          <div class="form-group d-flex">
+            <label for="toiletType" class="col-form-label mr-2 text-right">廁所種類</label>
+            <div class="flex-fill">
+                <select id="toiletType" class="form-control" v-model="select.toiletType">
+                    <!-- 製作下拉選單 -->
+                    <option :value="toiletType"
+                            :key="key"
+                            v-for="(toiletType, key) in toiletTypes">
+                        {{ toiletType }}
+                    </option>
+                </select>
+            </div>
           </div>
-        </div>
-         <div class="form-group d-flex">
-          <label for="toiletType" class="col-form-label mr-2 text-right">
-            總共找到：{{ totalToilet }}間
-          </label>
-        </div>
-    </div>
+          <div class="form-group d-flex">
+            <label v-if="isFetchingData" class="col-form-label mr-2 text-right">
+              資料載入中
+            </label>
+            <label v-else for="toiletType" class="col-form-label mr-2 text-right">
+              總共找到：{{ totalToilet }}間
+            </label>
+          </div>
+      </div>
 
-    <!-- 顯示地圖和 UBike 站點 -->
-    <div class="col-sm-9">
-        <div id="map"></div>
-    </div>
+      <!-- 顯示地圖和 UBike 站點 -->
+      <div class="col-sm-9">
+          <div id="map"></div>
+      </div>
+      <!-- <div class="modal">
+          <div class="innerModal">
+            <p>測試</p>
+          </div>
+        </div> -->
     </div>
 </template>
 <script>
 import leaflet from 'leaflet';
 import city from '../assets/city.json';
-import toiletsOriginData from '../assets/toilets.json';
+// import toiletsOriginData from '../assets/toilets.json';
 
 export default {
   name: 'Map',
@@ -67,8 +76,8 @@ export default {
   },
   data: () => ({
     city,
-    toiletsOriginData,
-    // toiletsOriginData: [],
+    // toiletsOriginData,
+    toiletsOriginData: [],
     // toilets: [],
     toiletTypes: ['無障礙廁所', '男廁所', '女廁所', '親子廁所', '性別友善廁所', '混合廁所'],
     select: {
@@ -78,10 +87,11 @@ export default {
     },
     OSMap: {},
     totalToilet: 0,
+    isFetchingData: false,
   }),
   created() {
     // const cors = 'https://cors-anywhere.herokuapp.com/'; // use cors-anywhere to fetch api
-    // const toiletUrl = 'http://opendata.epa.gov.tw/webapi/Data/OTH00307/?$filter=Country%20eq%20%27%E8%87%BA%E5%8C%97%E5%B8%82%27&$skip=0&$top=1000&format=json';
+    // const toiletUrl = 'https://opendata.epa.gov.tw/webapi/Data/OTH00307/?$filter=Country%20eq%20%27%E8%87%BA%E5%8C%97%E5%B8%82%27&$skip=0&$top=1000&format=json';
     // this.axios.get(`${cors}${toiletUrl}`)
     //   .then((response) => {
     //     this.toiletsOriginData = response.data;
@@ -90,6 +100,7 @@ export default {
     //   }).then(() => {
     //     this.updateMarkers();
     //   });
+    this.onQueryToiletData();
   },
   mounted() {
     // leaflet文件
@@ -104,7 +115,7 @@ export default {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
     }).addTo(this.OSMap);
-    this.updateMarkers();
+    // this.updateMarkers();
   },
   computed: {
     // 過濾廁所資料
@@ -116,17 +127,48 @@ export default {
     },
   },
   watch: {
-    toilets() {
-      this.updateMarkers();
+    // toilets: async function() {
+    //   await this.updateMarkers();
+    // },
+    // toiletsOriginData: async function() {
+    //   await this.updateMarkers();
+    // },
+    "select.dist": async function () {
+      if(this.select.dist!=='') {
+        await this.onQueryToiletData();
+      }
+      // await this.updateMarkers();
     },
-    toiletsOriginData() {
-      this.updateMarkers();
+    "select.city": function () {
+      this.select.dist = '';
+      // await this.updateMarkers();
     },
-    "select.dist": function() {
-      this.updateMarkers();
-    },
+    // "select.toiletType": async function () {
+    //   await this.onQueryToiletData();
+    //   await this.updateMarkers();
+    // },
   },
   methods: {
+    onQueryToiletData(offset=0, limit=1000) { // 跳過幾筆, 取幾筆 max: 1000
+      // Sample: https://opendata.epa.gov.tw/DevelopZone/Sample/OTH00307/
+      this.isFetchingData = true;
+      const filterLocation = `Type2%20eq%20%27${this.select.toiletType}%27%20and%20Country%20eq%20%27${this.select.city}%27%20and%20City%20eq%20%27${this.select.dist}%27`;
+      const queryString = `filters=${filterLocation}&offset=${offset}&limit=${limit}`;
+      const cors = 'https://cors-anywhere.herokuapp.com/';
+      const toiletUrl = `https://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-000467?${queryString}`;
+      this.axios.get(`${cors}${toiletUrl}`)
+        .then((response) => {
+          this.toiletsOriginData = response.data.result.records;
+          console.log('response.data.result.records->',response.data.result.records);
+          // console.log('response.data->',response.data);
+          return response;
+        }).then(() => {
+          this.updateMarkers();
+          this.isFetchingData = false;
+        }).catch((error) => {
+          console.log('伺服器忙碌中');
+        });
+    },
     async updateMarkers() {
       // 移除被選取的座標 eachLayer()、removeLayer()
       // https://leafletjs.com/reference-1.6.0.html#map-eachlayer
@@ -150,24 +192,96 @@ export default {
 
       // 聚焦到選擇的座標 panTo
       // https://leafletjs.com/reference-1.6.0.html#map-panto
-      await this.city[0].districts.find((dist) => {
+      const indexOfTargetCity = this.indexOfCity(this.select.city);
+      await this.city[indexOfTargetCity].districts.find((dist) => {
         if (dist.name === this.select.dist) {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
           // 傳送特效
-          this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
+          // this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
+          if (dist.latitude === undefined && dist.longitude === undefined) {
+            this.OSMap.flyTo(new leaflet.LatLng(this.city[indexOfTargetCity].latitude, this.city[indexOfTargetCity].longitude), 15);
+          } else {
+            this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
+          }
         }
         return dist.name === this.select.dist;
       });
+      // await this.city[0].districts.find((dist) => {
+      //   if (dist.name === this.select.dist) {
+      //     // 聚焦座標
+      //     // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
+      //     // 傳送特效
+      //     this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
+      //   }
+      //   return dist.name === this.select.dist;
+      // });
     },
+    indexOfCity(targetCity) {
+      let indexOfTargetCity = -1;
+      this.city.forEach((districts, index) => {
+        if (districts.name === targetCity) {
+          indexOfTargetCity = index;
+          return indexOfTargetCity;
+        }
+      });
+      return indexOfTargetCity;
+    }
   },
 };
 </script>
+
+<style>
+
+</style>
 
 <style scoped lang="scss">
     @import 'bootstrap/scss/bootstrap';
     #map {
         position: relative;
         height: 100vh;
+    }
+    h1 {
+      margin: 0;
+      padding: 0;
+    }
+    .app {
+      margin: 0;
+      padding: 0;
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+    .modal {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      background-color: rgba(0,0,0, 0.5);
+      z-index: 1000;
+    }
+    .innerModal {
+      position: absolute;
+      left: 25%;
+      right: 25%;
+      top: 25%;
+      margin: auto;
+      background: white;
+      z-index: 100;
+      border-radius: 20px;
+    }
+    .title {
+        text-align: center;
+        font-size: 26px;
+        margin: 20px auto;
+    }
+    .desc {
+      text-align: center;
+      font-size: 16px;
+      margin: auto 20px;
     }
 </style>
