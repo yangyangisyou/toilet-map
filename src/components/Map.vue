@@ -44,12 +44,19 @@
             </div>
           </div>
           <div class="form-group d-flex">
-            <label v-if="isFetchingData" class="col-form-label mr-2 text-right">
-              資料載入中
+            <label v-if="isServerResponseError" class="col-form-label mr-2 text-right">
+              伺服器忙碌中，請重新嘗試
+            </label>
+            <label v-else-if="isFetchingData" class="col-form-label mr-2 text-right">
+              政府資料庫擷取中
             </label>
             <label v-else for="toiletType" class="col-form-label mr-2 text-right">
               總共找到：{{ totalToilet }}間
             </label>
+            <button
+                type="button"
+                class="btn btn-info"
+                @click="onQueryServerHandler">search</button>
           </div>
       </div>
 
@@ -67,7 +74,6 @@
 <script>
 import leaflet from 'leaflet';
 import city from '../assets/city.json';
-// import toiletsOriginData from '../assets/toilets.json';
 
 export default {
   name: 'Map',
@@ -76,7 +82,6 @@ export default {
   },
   data: () => ({
     city,
-    // toiletsOriginData,
     toiletsOriginData: [],
     // toilets: [],
     toiletTypes: ['無障礙廁所', '男廁所', '女廁所', '親子廁所', '性別友善廁所', '混合廁所'],
@@ -87,19 +92,10 @@ export default {
     },
     OSMap: {},
     totalToilet: 0,
-    isFetchingData: false,
+    isFetchingData: true,
+    isServerResponseError: false,
   }),
   created() {
-    // const cors = 'https://cors-anywhere.herokuapp.com/'; // use cors-anywhere to fetch api
-    // const toiletUrl = 'https://opendata.epa.gov.tw/webapi/Data/OTH00307/?$filter=Country%20eq%20%27%E8%87%BA%E5%8C%97%E5%B8%82%27&$skip=0&$top=1000&format=json';
-    // this.axios.get(`${cors}${toiletUrl}`)
-    //   .then((response) => {
-    //     this.toiletsOriginData = response.data;
-    //     console.log(response.data);
-    //     return response;
-    //   }).then(() => {
-    //     this.updateMarkers();
-    //   });
     this.onQueryToiletData();
   },
   mounted() {
@@ -115,7 +111,6 @@ export default {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
     }).addTo(this.OSMap);
-    // this.updateMarkers();
   },
   computed: {
     // 過濾廁所資料
@@ -126,47 +121,52 @@ export default {
       return this.toiletsOriginData.filter((toilet) => toilet.City === this.select.dist && toilet.Type2 === this.select.toiletType);
     },
   },
+  // 監聽搜尋
   watch: {
-    // toilets: async function() {
-    //   await this.updateMarkers();
-    // },
-    // toiletsOriginData: async function() {
-    //   await this.updateMarkers();
-    // },
-    "select.dist": async function () {
-      if(this.select.dist!=='') {
-        await this.onQueryToiletData();
-      }
-      // await this.updateMarkers();
-    },
     "select.city": function () {
       this.select.dist = '';
-      // await this.updateMarkers();
     },
-    // "select.toiletType": async function () {
-    //   await this.onQueryToiletData();
-    //   await this.updateMarkers();
-    // },
+    "select.dist": function () {
+      if(this.select.dist!=='' && this.select.dist!==undefined) {
+        // this.isFetchingData = true;
+        // this.isServerResponseError = false;
+        // this.onQueryToiletData();
+      }
+    },
+    "select.toiletType": function () {
+      if(this.select.dist!=='' && this.select.dist!==undefined) {
+        // this.isFetchingData = true;
+        // this.isServerResponseError = false;
+        // this.onQueryToiletData();
+      }
+    },
   },
   methods: {
+    onQueryServerHandler() {
+      this.isFetchingData = true;
+      this.isServerResponseError = false;
+      this.onQueryToiletData();
+    },
     onQueryToiletData(offset=0, limit=1000) { // 跳過幾筆, 取幾筆 max: 1000
       // Sample: https://opendata.epa.gov.tw/DevelopZone/Sample/OTH00307/
-      this.isFetchingData = true;
       const filterLocation = `Type2%20eq%20%27${this.select.toiletType}%27%20and%20Country%20eq%20%27${this.select.city}%27%20and%20City%20eq%20%27${this.select.dist}%27`;
       const queryString = `filters=${filterLocation}&offset=${offset}&limit=${limit}`;
       const cors = 'https://cors-anywhere.herokuapp.com/';
       const toiletUrl = `https://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-000467?${queryString}`;
+      console.log('取得資料中...');
       this.axios.get(`${cors}${toiletUrl}`)
         .then((response) => {
           this.toiletsOriginData = response.data.result.records;
-          console.log('response.data.result.records->',response.data.result.records);
-          // console.log('response.data->',response.data);
           return response;
         }).then(() => {
           this.updateMarkers();
+          console.log('成功取得資料');
           this.isFetchingData = false;
+          this.isServerResponseError = false;
         }).catch((error) => {
           console.log('伺服器忙碌中');
+          this.isFetchingData = false;
+          this.isServerResponseError = true;
         });
     },
     async updateMarkers() {
@@ -198,24 +198,10 @@ export default {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
           // 傳送特效
-          // this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
-          if (dist.latitude === undefined && dist.longitude === undefined) {
-            this.OSMap.flyTo(new leaflet.LatLng(this.city[indexOfTargetCity].latitude, this.city[indexOfTargetCity].longitude), 15);
-          } else {
-            this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
-          }
+          this.OSMap.flyTo(new leaflet.LatLng(dist.lat, dist.lng), 15);
         }
         return dist.name === this.select.dist;
       });
-      // await this.city[0].districts.find((dist) => {
-      //   if (dist.name === this.select.dist) {
-      //     // 聚焦座標
-      //     // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
-      //     // 傳送特效
-      //     this.OSMap.flyTo(new leaflet.LatLng(dist.latitude, dist.longitude), 15);
-      //   }
-      //   return dist.name === this.select.dist;
-      // });
     },
     indexOfCity(targetCity) {
       let indexOfTargetCity = -1;
@@ -230,10 +216,6 @@ export default {
   },
 };
 </script>
-
-<style>
-
-</style>
 
 <style scoped lang="scss">
     @import 'bootstrap/scss/bootstrap';
