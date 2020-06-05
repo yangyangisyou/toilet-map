@@ -44,7 +44,8 @@
             </div>
           </div>
           <div class="form-group d-flex">
-            <label v-if="isServerResponseError" class="col-form-label mr-2 text-right">
+            <label v-if="isServerResponseError"
+              class="col-form-label mr-2 text-right error-message">
               伺服器忙碌中，請重新嘗試
             </label>
             <label v-else-if="isFetchingData" class="col-form-label mr-2 text-right">
@@ -125,20 +126,6 @@ export default {
   watch: {
     "select.city": function () {
       this.select.dist = '';
-    },
-    "select.dist": function () {
-      if(this.select.dist!=='' && this.select.dist!==undefined) {
-        // this.isFetchingData = true;
-        // this.isServerResponseError = false;
-        // this.onQueryToiletData();
-      }
-    },
-    "select.toiletType": function () {
-      if(this.select.dist!=='' && this.select.dist!==undefined) {
-        // this.isFetchingData = true;
-        // this.isServerResponseError = false;
-        // this.onQueryToiletData();
-      }
     },
   },
   methods: {
@@ -222,6 +209,9 @@ export default {
     #map {
         position: relative;
         height: 100vh;
+    }
+    .error-message {
+      color: red;
     }
     h1 {
       margin: 0;

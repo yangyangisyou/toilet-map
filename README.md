@@ -3,9 +3,11 @@
 this repository is based on my another project - [ubike-map](https://github.com/yangyangisyou/ubike-map).  
 
 ## Demo
-Version 1.0: [Click me](https://toiletmap.yyisyou.tw/)
+Version 1.0: 
+- Avalible in Taipei city.  
 
-- Now avalible in Taipei city.
+Version 2.0: [Click me](https://toiletmap.yyisyou.tw/)
+- Now avalible in whole Taiwan cities.
 
 ## About 
 <p float="left" margin="10px">
