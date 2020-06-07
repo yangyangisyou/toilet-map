@@ -45,7 +45,13 @@
           </div>
           <div class="form-group d-flex">
             <label
-              v-if="isUserFirstOpen&&isFetchingData===false"
+              v-if="isChangingDist"
+              class="col-form-label mr-2 text-right alert-message">
+              <span v-if="isFetchingData" class="alert-message">擷取政府資料庫中，請選擇地區</span>
+              <span v-else class="alert-message">已更新縣市資料，請選擇地區</span>
+            </label>
+            <label
+              v-else-if="isUserFirstOpen&&isFetchingData===false&&isFetchingData===false"
               class="col-form-label mr-2 text-right alert-message">
               切換縣市將自動擷取政府資料
             </label>
@@ -108,6 +114,7 @@ export default {
     isFetchingData: false,
     isServerResponseError: false,
     isUserFirstOpen: true,
+    isChangingDist: false,
   }),
   mounted() {
     // leaflet文件
@@ -122,17 +129,20 @@ export default {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
     }).addTo(this.OSMap);
-    // this.toilets = this.toiletsOriginData.filter((toilet) => this.select.dist === toilet.City);
   },
   // 監聽搜尋
   watch: {
     'select.city': function () {
       console.log('切換縣市');
       this.select.dist = '';
+      this.isChangingDist = true;
       this.onQueryToiletData();
     },
     'select.dist': function () {
       console.log('切換地區');
+      if (this.select.dist !== '' && this.select.dist !== undefined) {
+        this.isChangingDist = false;
+      }
       this.updateMarkers();
     },
     'select.toiletType': function () {
@@ -172,6 +182,7 @@ export default {
       const location = this.getQueryLocation();
       const { ACCESS_TOKEN } = KEY;
       const toiletUrl = `https://data.epa.gov.tw/api/v1/${location}?${queryString}&api_key=${ACCESS_TOKEN}`;
+      this.isFetchingData = true;
       console.log('取得資料中...');
       this.axios.get(`${cors}${toiletUrl}`)
         .then((response) => {
@@ -180,13 +191,15 @@ export default {
           return response;
         }).then(() => {
           console.log('成功取得資料');
-          this.isUserFirstOpen = false;
           this.isFetchingData = false;
+          this.isUserFirstOpen = false;
           this.isServerResponseError = false;
         }).catch((error) => {
           console.log('伺服器忙碌中', error);
           this.isFetchingData = false;
           this.isServerResponseError = true;
+          this.isUserFirstOpen = false;
+          this.isServerResponseError = false;
         });
     },
     onFocusMap() {
