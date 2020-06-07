@@ -28,9 +28,13 @@ Version 2.0: [Click me](https://toiletmap.yyisyou.tw/)
 
 ### Map API
 * [Leaflet](https://leafletjs.com/examples/quick-start/), an open street map  
+* [Taiwan EPA swagger (old)](https://opendata.epa.gov.tw/api/index.html)
+* [Taiwan EPA swagger (new)](https://data.epa.gov.tw/api/v1)
 
 ### Open data
-* [全國公廁建檔資料 - Taipei public toilets data](https://opendata.epa.gov.tw/Data/Contents/OTH00307/)  
+* [全國公廁建檔資料 - Taiwan public toilets data (old)](https://opendata.epa.gov.tw/Data/Contents/OTH00307/)  
+* [全國公廁建檔資料 - Taiwan public toilets data (new)](https://data.epa.gov.tw/dataset)
+
 ### Ajax
 * axios
 * vue-axios

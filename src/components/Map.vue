@@ -44,7 +44,17 @@
             </div>
           </div>
           <div class="form-group d-flex">
-            <label v-if="isServerResponseError"
+            <label
+              v-if="isUserFirstOpen&&isFetchingData===false"
+              class="col-form-label mr-2 text-right alert-message">
+              切換縣市將自動擷取政府資料
+            </label>
+            <label
+              v-else-if="(select.dist===''||select.dist===undefined)&&isFetchingData===false"
+              class="col-form-label mr-2 text-right alert-message">
+              選擇地區以自動搜尋
+            </label>
+            <label v-else-if="isServerResponseError"
               class="col-form-label mr-2 text-right error-message">
               伺服器忙碌中，請重新嘗試
             </label>
@@ -57,7 +67,7 @@
             <button
                 type="button"
                 class="btn btn-info"
-                @click="onQueryServerHandler">search</button>
+                @click="onQueryServerHandler">Reload</button>
           </div>
       </div>
 
@@ -74,7 +84,9 @@
 </template>
 <script>
 import leaflet from 'leaflet';
+import KEY from '../../key.json';
 import city from '../assets/city.json';
+import queryLocation from '../assets/queryLocation.json';
 
 export default {
   name: 'Map',
@@ -84,7 +96,7 @@ export default {
   data: () => ({
     city,
     toiletsOriginData: [],
-    // toilets: [],
+    toilets: [],
     toiletTypes: ['無障礙廁所', '男廁所', '女廁所', '親子廁所', '性別友善廁所', '混合廁所'],
     select: {
       city: '臺北市',
@@ -93,12 +105,10 @@ export default {
     },
     OSMap: {},
     totalToilet: 0,
-    isFetchingData: true,
+    isFetchingData: false,
     isServerResponseError: false,
+    isUserFirstOpen: true,
   }),
-  created() {
-    this.onQueryToiletData();
-  },
   mounted() {
     // leaflet文件
     // https://leafletjs.com/examples/quick-start/
@@ -112,75 +122,78 @@ export default {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
     }).addTo(this.OSMap);
-  },
-  computed: {
-    // 過濾廁所資料
-    toilets() {
-      /* eslint-disable */
-      // 只過濾種類
-      // return this.toiletsOriginData.filter((toilet) => toilet.Type2 === this.select.toiletType);
-      return this.toiletsOriginData.filter((toilet) => toilet.City === this.select.dist && toilet.Type2 === this.select.toiletType);
-    },
+    // this.toilets = this.toiletsOriginData.filter((toilet) => this.select.dist === toilet.City);
   },
   // 監聽搜尋
   watch: {
-    "select.city": function () {
+    'select.city': function () {
+      console.log('切換縣市');
       this.select.dist = '';
+      this.onQueryToiletData();
+    },
+    'select.dist': function () {
+      console.log('切換地區');
+      this.updateMarkers();
+    },
+    'select.toiletType': function () {
+      console.log('切換廁所種類');
+      this.updateMarkers();
     },
   },
   methods: {
+    updateMarkers() {
+      this.onFilterToilet();
+      this.onRemoveLocationFromMap();
+      this.onAddLocationToMap();
+      this.onFocusMap();
+    },
+    onFilterToilet() {
+      this.toilets = this.toiletsOriginData
+        .filter((toilet) => this.select.toiletType === toilet.Type2
+          && this.select.dist === toilet.City);
+    },
+    onFilterToiletType() {
+      this.toilets = this.toiletsOriginData
+        .filter((toilet) => this.select.toiletType === toilet.Type2);
+    },
+    getQueryLocation() {
+      return queryLocation[queryLocation
+        .findIndex((cityData) => cityData.name === this.select.city)].location;
+    },
     onQueryServerHandler() {
       this.isFetchingData = true;
       this.isServerResponseError = false;
       this.onQueryToiletData();
     },
-    onQueryToiletData(offset=0, limit=1000) { // 跳過幾筆, 取幾筆 max: 1000
+    onQueryToiletData(offset = 0, limit = 100000) { // 跳過幾筆, 最多取幾筆
       // Sample: https://opendata.epa.gov.tw/DevelopZone/Sample/OTH00307/
-      const filterLocation = `Type2%20eq%20%27${this.select.toiletType}%27%20and%20Country%20eq%20%27${this.select.city}%27%20and%20City%20eq%20%27${this.select.dist}%27`;
-      const queryString = `filters=${filterLocation}&offset=${offset}&limit=${limit}`;
+      const queryString = `offset=${offset}&limit=${limit}`;
       const cors = 'https://cors-anywhere.herokuapp.com/';
-      const toiletUrl = `https://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-000467?${queryString}`;
+      const location = this.getQueryLocation();
+      const { ACCESS_TOKEN } = KEY;
+      const toiletUrl = `https://data.epa.gov.tw/api/v1/${location}?${queryString}&api_key=${ACCESS_TOKEN}`;
       console.log('取得資料中...');
       this.axios.get(`${cors}${toiletUrl}`)
         .then((response) => {
-          this.toiletsOriginData = response.data.result.records;
+          this.toiletsOriginData = response.data.records;
+          this.updateMarkers();
           return response;
         }).then(() => {
-          this.updateMarkers();
           console.log('成功取得資料');
+          this.isUserFirstOpen = false;
           this.isFetchingData = false;
           this.isServerResponseError = false;
         }).catch((error) => {
-          console.log('伺服器忙碌中');
+          console.log('伺服器忙碌中', error);
           this.isFetchingData = false;
           this.isServerResponseError = true;
         });
     },
-    async updateMarkers() {
-      // 移除被選取的座標 eachLayer()、removeLayer()
-      // https://leafletjs.com/reference-1.6.0.html#map-eachlayer
-      // https://leafletjs.com/reference-1.6.0.html#map-removelayer
-      this.totalToilet = this.toilets.length;
-      await this.OSMap.eachLayer((layer) => {
-        if (layer instanceof leaflet.Marker) {
-          this.OSMap.removeLayer(layer);
-        }
-      });
-
-      // 新增選擇的座標
-      await this.toilets.forEach((toilet) => {
-        leaflet.marker([toilet.Latitude, toilet.Longitude])
-          .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
-                      <strong style="font-size: 16px; color: #d45345;">廁所種類：${toilet.Type2}</strong><br>
-                      廁所等級: ${toilet.Grade}<br>
-                      <small>地址: <a href=${'https://www.google.com/maps/place/'.concat(toilet.Address)} target="_blank">${toilet.Address}</a></small>`)
-          .addTo(this.OSMap);
-      });
-
+    onFocusMap() {
       // 聚焦到選擇的座標 panTo
       // https://leafletjs.com/reference-1.6.0.html#map-panto
       const indexOfTargetCity = this.indexOfCity(this.select.city);
-      await this.city[indexOfTargetCity].districts.find((dist) => {
+      this.city[indexOfTargetCity].districts.find((dist) => {
         if (dist.name === this.select.dist) {
           // 聚焦座標
           // this.OSMap.panTo(new leaflet.LatLng(dist.latitude, dist.longitude));
@@ -190,6 +203,28 @@ export default {
         return dist.name === this.select.dist;
       });
     },
+    onRemoveLocationFromMap() {
+      // 移除被選取的座標 eachLayer()、removeLayer()
+      // https://leafletjs.com/reference-1.6.0.html#map-eachlayer
+      // https://leafletjs.com/reference-1.6.0.html#map-removelayer
+      this.totalToilet = this.toilets.length;
+      this.OSMap.eachLayer((layer) => {
+        if (layer instanceof leaflet.Marker) {
+          this.OSMap.removeLayer(layer);
+        }
+      });
+    },
+    onAddLocationToMap() {
+      // 新增選擇的座標
+      this.toilets.forEach((toilet) => {
+        leaflet.marker([toilet.Latitude, toilet.Longitude])
+          .bindPopup(`<p><strong style="font-size: 20px;">${toilet.Name}</strong></p>
+                      <strong style="font-size: 16px; color: #d45345;">廁所種類：${toilet.Type2}</strong><br>
+                      廁所等級: ${toilet.Grade}<br>
+                      <small>地址: <a href=${'https://www.google.com/maps/place/'.concat(toilet.Address)} target="_blank">${toilet.Address}</a></small>`)
+          .addTo(this.OSMap);
+      });
+    },
     indexOfCity(targetCity) {
       let indexOfTargetCity = -1;
       this.city.forEach((districts, index) => {
@@ -197,9 +232,10 @@ export default {
           indexOfTargetCity = index;
           return indexOfTargetCity;
         }
+        return indexOfTargetCity;
       });
       return indexOfTargetCity;
-    }
+    },
   },
 };
 </script>
@@ -212,6 +248,9 @@ export default {
     }
     .error-message {
       color: red;
+    }
+    .alert-message {
+      color: blue;
     }
     h1 {
       margin: 0;

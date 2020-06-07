@@ -1,0 +1,94 @@
+[
+    {
+        "name": "臺灣",
+        "location": "fac_p_07"
+    },
+    {
+        "name": "花蓮縣",
+        "location": "fac_p_10"
+    },
+    {
+        "name": "宜蘭縣",
+        "location": "fac_p_11"
+    },
+    {
+        "name": "金門縣",
+        "location": "fac_p_12"
+    },
+    {
+        "name": "南投縣",
+        "location": "fac_p_13"
+    },
+    {
+        "name": "屏東縣",
+        "location": "fac_p_14"
+    },
+    {
+        "name": "苗栗縣",
+        "location": "fac_p_15"
+    },
+    {
+        "name": "桃園市",
+        "location": "fac_p_16"
+    },
+    {
+        "name": "高雄市",
+        "location": "fac_p_17"
+    },
+    {
+        "name": "基隆市",
+        "location": "fac_p_18"
+    },
+    {
+        "name": "連江縣",
+        "location": "fac_p_19"
+    },
+    {
+        "name": "雲林縣",
+        "location": "fac_p_20"
+    },
+    {
+        "name": "新北市",
+        "location": "fac_p_21"
+    },
+    {
+        "name": "新竹市",
+        "location": "fac_p_22"
+    },
+    {
+        "name": "新竹縣",
+        "location": "fac_p_23"
+    },
+    {
+        "name": "嘉義市",
+        "location": "fac_p_24"
+    },
+    {
+        "name": "嘉義縣",
+        "location": "fac_p_25"
+    },
+    {
+        "name": "彰化市",
+        "location": "fac_p_26"
+    },
+    {
+        "name": "臺中市",
+        "location": "fac_p_27"
+    },
+    {
+        "name": "臺北市",
+        "location": "fac_p_28"
+    },
+    {
+        "name": "臺東縣",
+        "location": "fac_p_29"
+    },
+    {
+        "name": "臺南市",
+        "location": "fac_p_30"
+    },
+    {
+        "name": "澎湖縣",
+        "location": "fac_p_31"
+    }
+]
