@@ -45,8 +45,13 @@
           </div>
           <div class="form-group d-flex">
             <label
-              v-if="(select.dist===''||select.dist===undefined)&&isFetchingData===false"
-              class="col-form-label mr-2 text-right error-message">
+              v-if="isUserFirstOpen&&isFetchingData===false"
+              class="col-form-label mr-2 text-right alert-message">
+              切換縣市將自動擷取政府資料
+            </label>
+            <label
+              v-else-if="(select.dist===''||select.dist===undefined)&&isFetchingData===false"
+              class="col-form-label mr-2 text-right alert-message">
               選擇地區以自動搜尋
             </label>
             <label v-else-if="isServerResponseError"
@@ -100,12 +105,10 @@ export default {
     },
     OSMap: {},
     totalToilet: 0,
-    isFetchingData: true,
+    isFetchingData: false,
     isServerResponseError: false,
+    isUserFirstOpen: true,
   }),
-  created() {
-    this.onQueryToiletData();
-  },
   mounted() {
     // leaflet文件
     // https://leafletjs.com/examples/quick-start/
@@ -177,6 +180,7 @@ export default {
           return response;
         }).then(() => {
           console.log('成功取得資料');
+          this.isUserFirstOpen = false;
           this.isFetchingData = false;
           this.isServerResponseError = false;
         }).catch((error) => {
@@ -244,6 +248,9 @@ export default {
     }
     .error-message {
       color: red;
+    }
+    .alert-message {
+      color: blue;
     }
     h1 {
       margin: 0;
