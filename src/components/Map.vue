@@ -47,7 +47,7 @@
             <label
               v-if="isChangingDist"
               class="col-form-label mr-2 text-right alert-message">
-              <span v-if="isFetchingData" class="alert-message">預先擷取政府資料庫中，請選擇地區</span>
+              <span v-if="isFetchingData" class="alert-message">擷取政府資料庫中，請選擇地區</span>
               <span v-else class="alert-message">已更新縣市資料，請選擇地區</span>
             </label>
             <label
